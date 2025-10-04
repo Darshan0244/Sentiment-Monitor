@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Customer Sentiment Alert System{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Statistics Cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Mentions (7 days)
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ stats.sentiment_distribution | sum(attribute='count') if stats.sentiment_distribution else 0 }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-comments fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Negative Mentions
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% set negative_count = stats.sentiment_distribution | selectattr('sentiment_category', 'in', ['negative', 'very_negative']) | sum(attribute='count') if stats.sentiment_distribution else 0 %}
+                            {{ negative_count }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Active Alerts
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ active_alerts | length }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-bell fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Critical Alerts
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ active_alerts | selectattr('urgency_level', 'equalto', 'critical') | list | length }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-fire fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sentiment Distribution Chart -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Sentiment Distribution (Last 7 Days)</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="sentimentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Source Distribution -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Top Sources</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie pt-4 pb-2">
+                    <canvas id="sourceChart"></canvas>
+                </div>
+                <div class="mt-4 text-center small">
+                    {% if stats.source_distribution %}
+                        {% for source in stats.source_distribution[:5] %}
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-primary"></i> {{ source.name }}: {{ source.count }}
+                        </span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-muted">No data available</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Alerts -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Alerts</h6>
+            </div>
+            <div class="card-body">
+                {% if active_alerts %}
+                    {% for alert in active_alerts[:5] %}
+                    <div class="alert-card alert-{{ alert.urgency_level }} mb-3 p-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">
+                                    <i class="fas fa-{{ 'fire' if alert.urgency_level == 'critical' else 'exclamation-triangle' if alert.urgency_level == 'high' else 'info-circle' }} me-2"></i>
+                                    {{ alert.urgency_level | title }} Alert
+                                </h6>
+                                <p class="mb-1 small text-muted">{{ alert.text[:100] }}{% if alert.text | length > 100 %}...{% endif %}</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ alert.timestamp | datetimeformat if alert.timestamp else 'Unknown' }}
+                                    <i class="fas fa-globe ms-2 me-1"></i>
+                                    {{ alert.source }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-{{ 'danger' if alert.urgency_level == 'critical' else 'warning' if alert.urgency_level == 'high' else 'secondary' }}">
+                                    {{ alert.urgency_level | title }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if active_alerts | length > 5 %}
+                    <div class="text-center">
+                        <a href="{{ url_for('alerts') }}" class="btn btn-sm btn-outline-primary">
+                            View All Alerts ({{ active_alerts | length }})
+                        </a>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-check-circle fa-3x mb-3"></i>
+                        <p>No active alerts</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Negative Sentiment -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Negative Sentiment</h6>
+            </div>
+            <div class="card-body">
+                {% if recent_negative %}
+                    {% for item in recent_negative[:5] %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="sentiment-score sentiment-negative me-2">
+                                        {{ "%.2f" | format(item.sentiment_score) }}
+                                    </span>
+                                    <span class="badge bg-{{ 'danger' if item.urgency_level == 'critical' else 'warning' if item.urgency_level == 'high' else 'secondary' }}">
+                                        {{ item.urgency_level | title }}
+                                    </span>
+                                </div>
+                                <p class="mb-1 small">{{ item.text[:150] }}{% if item.text | length > 150 %}...{% endif %}</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-globe me-1"></i>
+                                    {{ item.source }}
+                                    <i class="fas fa-clock ms-2 me-1"></i>
+                                    {{ item.timestamp | datetimeformat if item.timestamp else 'Unknown' }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-smile fa-3x mb-3"></i>
+                        <p>No recent negative sentiment</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Sentiment Distribution Chart
+    const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+    const sentimentData = {{ stats.sentiment_distribution | tojson if stats.sentiment_distribution else '[]' }};
+    
+    const sentimentLabels = sentimentData.map(item => item.sentiment_category);
+    const sentimentCounts = sentimentData.map(item => item.count);
+    
+    new Chart(sentimentCtx, {
+        type: 'bar',
+        data: {
+            labels: sentimentLabels,
+            datasets: [{
+                label: 'Mentions',
+                data: sentimentCounts,
+                backgroundColor: [
+                    '#dc3545', // very_negative
+                    '#fd7e14', // negative
+                    '#6c757d', // neutral
+                    '#28a745', // positive
+                    '#20c997'  // very_positive
+                ],
+                borderColor: [
+                    '#dc3545',
+                    '#fd7e14',
+                    '#6c757d',
+                    '#28a745',
+                    '#20c997'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Source Distribution Chart
+    const sourceCtx = document.getElementById('sourceChart').getContext('2d');
+    const sourceData = {{ stats.source_distribution | tojson if stats.source_distribution else '[]' }};
+    
+    const sourceLabels = sourceData.map(item => item.name);
+    const sourceCounts = sourceData.map(item => item.count);
+    
+    new Chart(sourceCtx, {
+        type: 'doughnut',
+        data: {
+            labels: sourceLabels,
+            datasets: [{
+                data: sourceCounts,
+                backgroundColor: [
+                    '#007bff',
+                    '#28a745',
+                    '#ffc107',
+                    '#dc3545',
+                    '#6f42c1',
+                    '#fd7e14'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

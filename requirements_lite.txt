@@ -1,0 +1,30 @@
+# Core dependencies (lightweight version)
+flask>=2.3.0
+flask-cors>=4.0.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+selenium>=4.15.0
+tweepy>=4.14.0
+
+# NLP and sentiment analysis (lightweight)
+textblob==0.17.1
+vaderSentiment==3.3.2
+nltk==3.8.1
+
+# Database and data handling
+pandas>=2.1.0
+numpy>=1.24.0
+
+# Email and notifications
+email-validator>=2.1.0
+
+# Scheduling and async
+schedule>=1.2.0
+
+# Configuration and logging
+python-dotenv>=1.0.0
+loguru>=0.7.0
+
+# Web scraping utilities
+lxml>=4.9.0
+html5lib>=1.1

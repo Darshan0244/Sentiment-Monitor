@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Alerts - Customer Sentiment Alert System{% endblock %}
+
+{% block page_title %}Alerts{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h4>Active Alerts</h4>
+    </div>
+    <div class="col-md-6 text-end">
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('alerts') }}" class="btn btn-outline-secondary btn-sm {{ 'active' if not urgency_filter else '' }}">
+                All
+            </a>
+            <a href="{{ url_for('alerts', urgency='critical') }}" class="btn btn-outline-danger btn-sm {{ 'active' if urgency_filter == 'critical' else '' }}">
+                Critical
+            </a>
+            <a href="{{ url_for('alerts', urgency='high') }}" class="btn btn-outline-warning btn-sm {{ 'active' if urgency_filter == 'high' else '' }}">
+                High
+            </a>
+            <a href="{{ url_for('alerts', urgency='medium') }}" class="btn btn-outline-info btn-sm {{ 'active' if urgency_filter == 'medium' else '' }}">
+                Medium
+            </a>
+            <a href="{{ url_for('alerts', urgency='low') }}" class="btn btn-outline-secondary btn-sm {{ 'active' if urgency_filter == 'low' else '' }}">
+                Low
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if alerts %}
+    {% for alert in alerts %}
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <span class="badge bg-{{ 'danger' if alert.urgency_level == 'critical' else 'warning' if alert.urgency_level == 'high' else 'info' if alert.urgency_level == 'medium' else 'secondary' }} me-3">
+                    {{ alert.urgency_level | title }}
+                </span>
+                <h5 class="mb-0">
+                    <i class="fas fa-{{ 'fire' if alert.urgency_level == 'critical' else 'exclamation-triangle' if alert.urgency_level == 'high' else 'info-circle' }} me-2"></i>
+                    Alert #{{ alert.id }}
+                </h5>
+            </div>
+            <div class="text-muted small">
+                <i class="fas fa-clock me-1"></i>
+                {{ alert.created_at | datetimeformat if alert.created_at else 'Unknown' }}
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h6 class="text-primary">Customer Feedback:</h6>
+                    <div class="alert alert-light">
+                        <p class="mb-0">{{ alert.text }}</p>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Source:</strong> {{ alert.source }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Sentiment Score:</strong> 
+                            <span class="sentiment-score sentiment-negative">
+                                {{ "%.3f" | format(alert.sentiment_score) }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {% if alert.source_url %}
+                    <div class="mb-3">
+                        <strong>Source URL:</strong> 
+                        <a href="{{ alert.source_url }}" target="_blank" class="text-decoration-none">
+                            {{ alert.source_url }}
+                            <i class="fas fa-external-link-alt ms-1"></i>
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <strong>Message:</strong>
+                        <p class="text-muted">{{ alert.message }}</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-header">
+                            <h6 class="mb-0">Response Recommendation</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="small">{{ alert.response_recommendation }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small text-muted">Email Status:</span>
+                            <span class="badge bg-{{ 'success' if alert.email_sent else 'secondary' }}">
+                                {{ 'Sent' if alert.email_sent else 'Pending' }}
+                            </span>
+                        </div>
+                        
+                        {% if alert.email_sent_at %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small text-muted">Sent At:</span>
+                            <span class="small">{{ alert.email_sent_at | datetimeformat }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted">Status:</span>
+                            <span class="badge bg-{{ 'success' if alert.status == 'active' else 'secondary' }}">
+                                {{ alert.status | title }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewDetails({{ alert.id }})">
+                        <i class="fas fa-eye me-1"></i>
+                        View Details
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="markResolved({{ alert.id }})">
+                        <i class="fas fa-check me-1"></i>
+                        Mark Resolved
+                    </button>
+                </div>
+                <div class="text-muted small">
+                    Alert ID: {{ alert.id }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <!-- Pagination would go here if implemented -->
+    
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-check-circle fa-5x text-success mb-4"></i>
+        <h3>No Active Alerts</h3>
+        <p class="text-muted">
+            {% if urgency_filter %}
+                No {{ urgency_filter }} priority alerts found.
+            {% else %}
+                Great! There are currently no active alerts.
+            {% endif %}
+        </p>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+            <i class="fas fa-tachometer-alt me-2"></i>
+            Back to Dashboard
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function viewDetails(alertId) {
+        // Show alert details in a modal
+        fetch('/api/alert-details/' + alertId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error loading alert details: ' + data.error);
+                } else {
+                    showAlertModal(data);
+                }
+            })
+            .catch(error => {
+                alert('Error loading alert details: ' + error);
+            });
+    }
+    
+    function markResolved(alertId) {
+        if (confirm('Are you sure you want to mark this alert as resolved?')) {
+            fetch('/api/resolve-alert/' + alertId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Alert ' + alertId + ' has been marked as resolved');
+                    location.reload(); // Refresh the page
+                } else {
+                    alert('Error resolving alert: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error resolving alert: ' + error);
+            });
+        }
+    }
+    
+    function showAlertModal(alertData) {
+        // Create and show modal with alert details
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Alert Details #${alertData.id}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Alert Information</h6>
+                                <p><strong>ID:</strong> ${alertData.id}</p>
+                                <p><strong>Urgency:</strong> <span class="badge bg-warning">${alertData.urgency_level}</span></p>
+                                <p><strong>Status:</strong> <span class="badge bg-success">${alertData.status}</span></p>
+                                <p><strong>Created:</strong> ${alertData.created_at}</p>
+                                <p><strong>Email Sent:</strong> ${alertData.email_sent ? 'Yes' : 'No'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Sentiment Analysis</h6>
+                                <p><strong>Score:</strong> ${alertData.sentiment_score}</p>
+                                <p><strong>Source:</strong> ${alertData.source}</p>
+                                <p><strong>URL:</strong> <a href="${alertData.source_url}" target="_blank">View Original</a></p>
+                            </div>
+                        </div>
+                        <hr>
+                        <h6>Customer Feedback</h6>
+                        <div class="alert alert-light">
+                            <p>${alertData.text}</p>
+                        </div>
+                        <h6>Response Recommendation</h6>
+                        <div class="alert alert-info">
+                            <p>${alertData.response_recommendation}</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-success" onclick="markResolved(${alertData.id})">Mark Resolved</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        const bootstrapModal = new bootstrap.Modal(modal);
+        bootstrapModal.show();
+        
+        // Remove modal from DOM when hidden
+        modal.addEventListener('hidden.bs.modal', function () {
+            document.body.removeChild(modal);
+        });
+    }
+</script>
+{% endblock %}

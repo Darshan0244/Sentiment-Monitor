@@ -1,0 +1,30 @@
+# Customer Sentiment Alert System - Environment Configuration
+# Copy this file to .env and update with your actual values
+
+# Database Configuration
+DATABASE_URL=sqlite:///sentiment_alerts.db
+
+# Email Configuration (Required for alerts)
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+EMAIL_USERNAME=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+ALERT_EMAIL=support@yourcompany.com
+
+# Social Media API Keys (Optional - for enhanced monitoring)
+TWITTER_API_KEY=your_twitter_api_key
+TWITTER_API_SECRET=your_twitter_api_secret
+TWITTER_ACCESS_TOKEN=your_twitter_access_token
+TWITTER_ACCESS_TOKEN_SECRET=your_twitter_access_token_secret
+
+# Monitoring Configuration
+MONITORING_INTERVAL=300
+SENTIMENT_THRESHOLD=-0.3
+
+# Flask Configuration
+SECRET_KEY=your-secret-key-here
+DEBUG=False
+
+# Logging Configuration
+LOG_LEVEL=INFO
+LOG_FILE=sentiment_alerts.log
