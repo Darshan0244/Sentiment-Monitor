@@ -1,0 +1,83 @@
+# -------------------------
+# Python
+# -------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# -------------------------
+# Virtual Environments
+# -------------------------
+venv/
+env/
+.venv/
+ENV/
+
+# -------------------------
+# Environment Variables
+# -------------------------
+.env
+.env.*
+
+# -------------------------
+# Logs
+# -------------------------
+*.log
+
+# -------------------------
+# Flask Session / Cache
+# -------------------------
+flask_session/
+sessions/
+.flask_session
+
+# -------------------------
+# SQLite Database Files
+# -------------------------
+*.db
+*.sqlite3
+
+# -------------------------
+# Selenium Drivers
+# -------------------------
+chromedriver
+chromedriver.exe
+geckodriver
+geckodriver.exe
+
+# -------------------------
+# OS Files
+# -------------------------
+.DS_Store
+Thumbs.db
+
+# -------------------------
+# IDE / Editor
+# -------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# -------------------------
+# Python Packaging / Build
+# -------------------------
+*.egg-info/
+dist/
+build/
+__pypackages__/
+
+# -------------------------
+# Test / Coverage
+# -------------------------
+htmlcov/
+.coverage
+.coverage.*
+.pytest_cache/
+
+# -------------------------
+# Optional / Misc
+# -------------------------
+*.bak
+*.swp
+*.tmp
