@@ -75,7 +75,7 @@ graph TD
     I --> D
 ```
 
-### ‼️Flow Description
+## ‼️Flow Description
 1. **Web Scraper** monitors multiple platforms for mentions
 2. **Sentiment Analyzer** processes text using multiple NLP models
 3. **Database** stores analysis results and metadata
