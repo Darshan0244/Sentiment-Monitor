@@ -12,20 +12,6 @@ A comprehensive real-time monitoring system that tracks customer sentiment acros
 - **Configurable Monitoring**: Customizable keywords, companies, and thresholds
 - **Data Persistence**: SQLite database with comprehensive logging
 
-## 📱 Screenshots
-
-### Dashboard Overview
-![Dashboard](docs/images/dashboard.png)
-*Real-time sentiment monitoring with interactive charts*
-
-### Alert Management
-![Alerts](docs/images/alerts.png)
-*Comprehensive alert management with response recommendations*
-
-### Email Notifications
-![Email](docs/images/email-template.png)
-*Professional HTML email templates for different urgency levels*
-
 
 
 ## 📁 Project Structure
